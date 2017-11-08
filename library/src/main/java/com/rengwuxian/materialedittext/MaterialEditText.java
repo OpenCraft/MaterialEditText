@@ -18,7 +18,6 @@ import android.support.annotation.DrawableRes;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v7.widget.AppCompatEditText;
 import android.text.Editable;
 import android.text.Layout;
 import android.text.StaticLayout;
@@ -57,6 +56,7 @@ public class MaterialEditText extends MaterialBaseEditText {
     public static final int FLOATING_LABEL_NONE = 0;
     public static final int FLOATING_LABEL_NORMAL = 1;
     public static final int FLOATING_LABEL_HIGHLIGHT = 2;
+    public static final int FLOATING_LABEL_BOTTOM = 3;
 
     final int DRAWABLE_LEFT = 0;
     final int DRAWABLE_TOP = 1;
@@ -91,6 +91,11 @@ public class MaterialEditText extends MaterialBaseEditText {
      * the floating label's text size.
      */
     private int floatingLabelTextSize;
+
+    /**
+     * the floating label's text size.
+     */
+    private int floatingLabelMode;
 
     /**
      * the floating label's text color.
@@ -387,7 +392,8 @@ public class MaterialEditText extends MaterialBaseEditText {
         }
 
         primaryColor = typedArray.getColor(R.styleable.MaterialEditText_met_primaryColor, defaultPrimaryColor);
-        setFloatingLabelInternal(typedArray.getInt(R.styleable.MaterialEditText_met_floatingLabel, 0));
+        floatingLabelMode = typedArray.getInt(R.styleable.MaterialEditText_met_floatingLabel, 0);
+        setFloatingLabelInternal(floatingLabelMode);
         errorColor = typedArray.getColor(R.styleable.MaterialEditText_met_errorColor, Color.parseColor("#e7492E"));
         disabledUnderlineColor = typedArray.getColor(R.styleable.MaterialEditText_met_disabledBottomLineColor, -1);
         minCharacters = typedArray.getInt(R.styleable.MaterialEditText_met_minCharacters, 0);
@@ -828,11 +834,11 @@ public class MaterialEditText extends MaterialBaseEditText {
         }
         int destBottomLines;
         textPaint.setTextSize(bottomTextSize);
-        if (tempErrorText != null || helperText != null) {
-            Layout.Alignment alignment = (getGravity() & Gravity.RIGHT) == Gravity.RIGHT || isRTL() ?
-                    Layout.Alignment.ALIGN_OPPOSITE : (getGravity() & Gravity.LEFT) == Gravity.LEFT ?
+        if (getBottomText() != null) {
+            Layout.Alignment alignment = (getGravity() & Gravity.END) == Gravity.END || isRTL() ?
+                    Layout.Alignment.ALIGN_OPPOSITE : (getGravity() & Gravity.START) == Gravity.START ?
                     Layout.Alignment.ALIGN_NORMAL : Layout.Alignment.ALIGN_CENTER;
-            textLayout = new StaticLayout(tempErrorText != null ? tempErrorText : helperText, textPaint, getWidth() - getBottomTextLeftOffset() - getBottomTextRightOffset() - getPaddingLeft() - getPaddingRight(), alignment, 1.0f, 0.0f, true);
+            textLayout = new StaticLayout(getBottomText(), textPaint, getWidth() - getBottomTextLeftOffset() - getBottomTextRightOffset() - getPaddingLeft() - getPaddingRight(), alignment, 1.0f, 0.0f, true);
             destBottomLines = Math.max(textLayout.getLineCount(), minBottomTextLines);
         } else {
             destBottomLines = minBottomLines;
@@ -842,6 +848,19 @@ public class MaterialEditText extends MaterialBaseEditText {
         }
         bottomLines = destBottomLines;
         return true;
+    }
+
+    private CharSequence getBottomText() {
+        if (tempErrorText != null)
+            return tempErrorText;
+
+        if (floatingLabelMode == FLOATING_LABEL_BOTTOM && getHint() != null)
+            return getHint();
+
+        if (helperText != null)
+            return helperText;
+
+        return null;
     }
 
     /**
@@ -1355,8 +1374,8 @@ public class MaterialEditText extends MaterialBaseEditText {
 
         // draw the bottom text
         if (textLayout != null) {
-            if (tempErrorText != null || ((helperTextAlwaysShown || hasFocus()) && !TextUtils.isEmpty(helperText))) { // error text or helper text
-                textPaint.setColor(tempErrorText != null ? errorColor : helperTextColor != -1 ? helperTextColor : (baseColor & 0x00ffffff | 0x44000000));
+            if (shouldDrawBottomText()) { // error text or helper text
+                textPaint.setColor(getBottomTextColor());
                 canvas.save();
                 if (isRTL()) {
                     canvas.translate(endX - textLayout.getWidth(), lineStartY + bottomSpacing - bottomTextPadding);
@@ -1415,6 +1434,39 @@ public class MaterialEditText extends MaterialBaseEditText {
 
         // draw the original things
         super.onDraw(canvas);
+    }
+
+    private boolean shouldDrawBottomText() {
+
+        if (tempErrorText != null) {
+            return true;
+        }
+
+        if (((helperTextAlwaysShown || hasFocus()) && !TextUtils.isEmpty(helperText))) {
+            return true;
+        }
+
+        if (floatingLabelMode == FLOATING_LABEL_BOTTOM && !TextUtils.isEmpty(getText())) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private Integer getBottomTextColor() {
+        if (tempErrorText != null) {
+            return errorColor;
+        }
+
+        if (floatingLabelMode == FLOATING_LABEL_BOTTOM) {
+            return floatingLabelTextColor;
+        }
+
+        if (helperTextColor != -1) {
+            return helperTextColor;
+        } else {
+            return (baseColor & 0x00ffffff | 0x44000000);
+        }
     }
 
     private void showClearButton() {

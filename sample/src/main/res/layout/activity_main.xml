@@ -246,7 +246,9 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:hint="Helper/Error Text"
-                    app:met_helperText="helper is here" />
+                    app:met_floatingLabel="bottom"
+                    app:met_floatingLabelTextColor="@android:color/black"
+                    android:gravity="center"/>
 
                 <Button
                     android:id="@+id/setErrorBt"
@@ -329,9 +331,8 @@
                 android:hint="Custom Colors"
                 app:met_baseColor="#007688"
                 app:met_errorColor="#ddaa00"
-                app:met_floatingLabel="normal"
+                app:met_floatingLabel="bottom"
                 app:met_floatingLabelTextColor="#8805ad"
-                app:met_helperText="Helper Text"
                 app:met_helperTextColor="#795548"
                 app:met_maxCharacters="5"
                 app:met_primaryColor="#2196F3"
@@ -361,6 +362,7 @@
                 app:met_accentTypeface="fonts/Roboto-LightItalic.ttf"
                 app:met_floatingLabel="normal"
                 app:met_helperText="Helper Text"
+                android:layout_gravity="center_horizontal"
                 app:met_maxCharacters="5"
                 app:met_typeface="fonts/Roboto-LightItalic.ttf" />
 
