@@ -10,6 +10,7 @@
       <enum name="none" value="0" />
       <enum name="normal" value="1" />
       <enum name="highlight" value="2" />
+      <enum name="bottom" value="3" />
     </attr>
     <!-- The color for when something is wrong.(e.g. exceeding max characters) -->
     <attr name="met_errorColor" format="color" />
