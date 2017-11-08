@@ -18,7 +18,6 @@ import android.support.annotation.DrawableRes;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v7.widget.AppCompatEditText;
 import android.text.Editable;
 import android.text.Layout;
 import android.text.StaticLayout;
@@ -27,7 +26,6 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.method.TransformationMethod;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -60,6 +58,10 @@ public class MaterialEditText extends MaterialBaseEditText {
     public static final int FLOATING_LABEL_HIGHLIGHT = 2;
     public static final int FLOATING_LABEL_BOTTOM = 3;
 
+    final int DRAWABLE_LEFT = 0;
+    final int DRAWABLE_TOP = 1;
+    final int DRAWABLE_RIGHT = 2;
+    final int DRAWABLE_BOTTOM = 3;
     /**
      * the color for the disabled dotted underline.
      */
@@ -298,7 +300,7 @@ public class MaterialEditText extends MaterialBaseEditText {
     /**
      * Clear Button
      */
-    private Bitmap[] clearButtonBitmaps;
+    private int clearButtonDrawable;
 
     /**
      * Auto validate when focus lost.
@@ -426,7 +428,7 @@ public class MaterialEditText extends MaterialBaseEditText {
         iconLeftBitmaps = generateIconBitmaps(typedArray.getResourceId(R.styleable.MaterialEditText_met_iconLeft, -1));
         iconRightBitmaps = generateIconBitmaps(typedArray.getResourceId(R.styleable.MaterialEditText_met_iconRight, -1));
         showClearButton = typedArray.getBoolean(R.styleable.MaterialEditText_met_clearButton, false);
-        clearButtonBitmaps = generateIconBitmaps(R.drawable.met_ic_clear);
+        clearButtonDrawable = typedArray.getResourceId(R.styleable.MaterialEditText_met_clearIconDrawable, R.drawable.met_ic_clear);
         iconPadding = typedArray.getDimensionPixelSize(R.styleable.MaterialEditText_met_iconPadding, getPixel(16));
         floatingLabelAlwaysShown = typedArray.getBoolean(R.styleable.MaterialEditText_met_floatingLabelAlwaysShown, false);
         helperTextAlwaysShown = typedArray.getBoolean(R.styleable.MaterialEditText_met_helperTextAlwaysShown, false);
@@ -499,6 +501,9 @@ public class MaterialEditText extends MaterialBaseEditText {
                     validate();
                 } else {
                     setError(null);
+                }
+                if (s.length() == 0 && showClearButton) {
+                    hideClearButton();
                 }
                 postInvalidate();
             }
@@ -796,14 +801,7 @@ public class MaterialEditText extends MaterialBaseEditText {
      * Set paddings to the correct values
      */
     private void correctPaddings() {
-        int buttonsWidthLeft = 0, buttonsWidthRight = 0;
-        int buttonsWidth = iconOuterWidth * getButtonsCount();
-        if (isRTL()) {
-            buttonsWidthLeft = buttonsWidth;
-        } else {
-            buttonsWidthRight = buttonsWidth;
-        }
-        super.setPadding(innerPaddingLeft + extraPaddingLeft + buttonsWidthLeft, innerPaddingTop + extraPaddingTop, innerPaddingRight + extraPaddingRight + buttonsWidthRight, innerPaddingBottom + extraPaddingBottom);
+        super.setPadding(innerPaddingLeft + extraPaddingLeft, innerPaddingTop + extraPaddingTop, innerPaddingRight + extraPaddingRight, innerPaddingBottom + extraPaddingBottom);
     }
 
     private int getButtonsCount() {
@@ -1328,17 +1326,7 @@ public class MaterialEditText extends MaterialBaseEditText {
 
         // draw the clear button
         if (hasFocus() && showClearButton && !TextUtils.isEmpty(getText()) && isEnabled()) {
-            paint.setAlpha(255);
-            int buttonLeft;
-            if (isRTL()) {
-                buttonLeft = startX;
-            } else {
-                buttonLeft = endX - iconOuterWidth;
-            }
-            Bitmap clearButtonBitmap = clearButtonBitmaps[0];
-            buttonLeft += (iconOuterWidth - clearButtonBitmap.getWidth()) / 2;
-            int iconTop = lineStartY + bottomSpacing - iconOuterHeight + (iconOuterHeight - clearButtonBitmap.getHeight()) / 2;
-            canvas.drawBitmap(clearButtonBitmap, buttonLeft, iconTop, paint);
+            showClearButton();
         }
 
         // draw the underline
@@ -1350,19 +1338,17 @@ public class MaterialEditText extends MaterialBaseEditText {
             } else if (!isEnabled()) { // disabled
 
 
-
                 int disabledLineColor = disabledUnderlineColor;
-                if (disabledUnderlineColor == -1){
+                if (disabledUnderlineColor == -1) {
                     disabledLineColor = underlineColor != -1 ? underlineColor : baseColor;
                 }
                 paint.setColor(disabledLineColor & 0x00ffffff | 0x44000000);
-                if (dottedBottomLinesForDisabledState){
+                if (dottedBottomLinesForDisabledState) {
                     float interval = getPixel(1);
                     for (float xOffset = 0; xOffset < getWidth(); xOffset += interval * 3) {
                         canvas.drawRect(startX + xOffset, lineStartY, startX + xOffset + interval, lineStartY + getPixel(1), paint);
                     }
-                }
-                else{
+                } else {
                     canvas.drawRect(startX, lineStartY, endX, lineStartY + getPixel(1), paint);
                 }
             } else if (hasFocus()) { // focused
@@ -1461,7 +1447,6 @@ public class MaterialEditText extends MaterialBaseEditText {
         }
 
         if (floatingLabelMode == FLOATING_LABEL_BOTTOM && !TextUtils.isEmpty(getText())) {
-            Log.d("OLOCO", "bisho");
             return true;
         }
 
@@ -1480,8 +1465,12 @@ public class MaterialEditText extends MaterialBaseEditText {
         if (helperTextColor != -1) {
             return helperTextColor;
         } else {
-           return (baseColor & 0x00ffffff | 0x44000000);
+            return (baseColor & 0x00ffffff | 0x44000000);
         }
+    }
+
+    private void showClearButton() {
+        setCompoundDrawablesWithIntrinsicBounds(0, 0, clearButtonDrawable, 0);
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
@@ -1565,6 +1554,7 @@ public class MaterialEditText extends MaterialBaseEditText {
                     if (clearButtonClicking) {
                         if (!TextUtils.isEmpty(getText())) {
                             setText(null);
+                            hideClearButton();
                         }
                         clearButtonClicking = false;
                     }
@@ -1584,22 +1574,16 @@ public class MaterialEditText extends MaterialBaseEditText {
     }
 
     private boolean insideClearButton(MotionEvent event) {
-        float x = event.getX();
-        float y = event.getY();
-        int startX = getScrollX() + (iconLeftBitmaps == null ? 0 : (iconOuterWidth + iconPadding));
-        int endX = getScrollX() + (iconRightBitmaps == null ? getWidth() : getWidth() - iconOuterWidth - iconPadding);
-        int buttonLeft;
-        if (isRTL()) {
-            buttonLeft = startX;
-        } else {
-            buttonLeft = endX - iconOuterWidth;
-        }
-        int buttonTop = getScrollY() + getHeight() - getPaddingBottom() + bottomSpacing - iconOuterHeight;
-        return (x >= buttonLeft && x < buttonLeft + iconOuterWidth && y >= buttonTop && y < buttonTop + iconOuterHeight);
+        return getCompoundDrawables()[DRAWABLE_RIGHT] != null && (event.getRawX() >= (getRight() - getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width()));
     }
 
     private int checkLength(CharSequence text) {
         if (lengthChecker == null) return text.length();
         return lengthChecker.getLength(text);
     }
+
+    private void hideClearButton() {
+        setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+    }
+
 }
