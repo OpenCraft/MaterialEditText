@@ -1333,6 +1333,7 @@ public class MaterialEditText extends MaterialBaseEditText {
         if (!hideUnderline) {
             lineStartY += bottomSpacing;
             if (!isInternalValid()) { // not valid
+                setTextColor(errorColor);
                 paint.setColor(errorColor);
                 canvas.drawRect(startX, lineStartY, endX, lineStartY + getPixel(2), paint);
             } else if (!isEnabled()) { // disabled
@@ -1352,9 +1353,11 @@ public class MaterialEditText extends MaterialBaseEditText {
                     canvas.drawRect(startX, lineStartY, endX, lineStartY + getPixel(1), paint);
                 }
             } else if (hasFocus()) { // focused
+                resetTextColor();
                 paint.setColor(primaryColor);
                 canvas.drawRect(startX, lineStartY, endX, lineStartY + getPixel(2), paint);
             } else { // normal
+                resetTextColor();
                 paint.setColor(underlineColor != -1 ? underlineColor : baseColor & 0x00ffffff | 0x1E000000);
                 canvas.drawRect(startX, lineStartY, endX, lineStartY + getPixel(1), paint);
             }
