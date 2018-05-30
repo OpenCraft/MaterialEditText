@@ -26,6 +26,7 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.method.TransformationMethod;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -1420,7 +1421,7 @@ public class MaterialEditText extends MaterialBaseEditText {
         }
 
         // draw the bottom ellipsis
-        if (hasFocus() && singleLineEllipsis && getScrollX() != 0) {
+        if (hasFocus() && singleLineEllipsis && textReachedEndOfEditText()) {
             paint.setColor(isInternalValid() ? primaryColor : errorColor);
             float startY = lineStartY + bottomSpacing;
             int ellipsisStartX;
@@ -1437,6 +1438,10 @@ public class MaterialEditText extends MaterialBaseEditText {
 
         // draw the original things
         super.onDraw(canvas);
+    }
+
+    private boolean textReachedEndOfEditText() {
+        return getPaint().measureText(getText().toString()) > getWidth();
     }
 
     private boolean shouldDrawBottomText() {
