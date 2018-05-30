@@ -172,6 +172,23 @@
                 android:text="Touch The Ellipsis And See What Happens. Touch The Ellipsis And See What Happens."
                 app:met_singleLineEllipsis="true" />
 
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="app:met_singleLineEllipsis=&quot;true&quot;\n#singLineEllipsis will force android:singleLine to true# Gravity"
+                android:textColor="#888888"
+                android:textSize="14sp" />
+
+            <com.rengwuxian.materialedittext.MaterialEditText
+                android:id="@+id/singleLineEllipsisEte"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:hint="Single Line Ellipsis"
+                android:text="Touch The Ellipsis And See What Happens. Touch The Ellipsis And See What Happens."
+                app:met_singleLineEllipsis="true" />
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
